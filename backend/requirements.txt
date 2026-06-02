@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+sqlalchemy
+aiofiles
+python-multipart
+opencv-python
+numpy
+ultralytics
+torch
+torchvision
+Pillow
+websockets
+alembic
