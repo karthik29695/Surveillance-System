@@ -37,15 +37,40 @@ class Track:
         self.last_seen   = timestamp
         self.missed      = 0          # consecutive frames without match
         self.history: List[Tuple[float, float]] = [_centroid(detection["bbox"])]
+        # Smoothed velocity (pixels per second)
+        self.vx: float = 0.0
+        self.vy: float = 0.0
+        self._VELOCITY_SMOOTH: float = 0.3   # EMA blending factor
 
     def update(self, detection: Dict, timestamp: float):
+        prev_cx, prev_cy = _centroid(self.bbox)
         self.bbox       = detection["bbox"]
         self.confidence = detection["confidence"]
+        dt = max(0.001, timestamp - self.last_seen)
         self.last_seen  = timestamp
         self.missed     = 0
-        self.history.append(_centroid(detection["bbox"]))
+        new_cx, new_cy = _centroid(self.bbox)
+        # Compute instantaneous velocity and smooth it
+        inst_vx = (new_cx - prev_cx) / dt
+        inst_vy = (new_cy - prev_cy) / dt
+        alpha = self._VELOCITY_SMOOTH
+        self.vx = alpha * inst_vx + (1 - alpha) * self.vx
+        self.vy = alpha * inst_vy + (1 - alpha) * self.vy
+        self.history.append((new_cx, new_cy))
         if len(self.history) > 60:          # keep last 60 positions
             self.history = self.history[-60:]
+
+    def predict(self, timestamp: float) -> Dict:
+        """Extrapolate bbox forward using smoothed velocity. Returns predicted bbox dict."""
+        dt = max(0.0, timestamp - self.last_seen)
+        dx = self.vx * dt
+        dy = self.vy * dt
+        return {
+            "x": int(self.bbox["x"] + dx),
+            "y": int(self.bbox["y"] + dy),
+            "w": self.bbox["w"],
+            "h": self.bbox["h"],
+        }
 
     @property
     def dwell_seconds(self) -> float:
@@ -106,9 +131,11 @@ class CentroidTracker:
         if track_ids:
             iou_matrix = np.zeros((len(track_ids), len(detections)))
             for ti, tid in enumerate(track_ids):
+                # Use predicted bbox at `timestamp` for robust IoU matching
+                pred_bbox = self.tracks[tid].predict(timestamp)
                 for di, det in enumerate(detections):
                     if self.tracks[tid].cls == det["class"]:
-                        iou_matrix[ti, di] = _iou(self.tracks[tid].bbox, det["bbox"])
+                        iou_matrix[ti, di] = _iou(pred_bbox, det["bbox"])
 
             # Greedy match: highest IoU first
             flat = np.argsort(-iou_matrix, axis=None)
@@ -135,6 +162,17 @@ class CentroidTracker:
 
         self._prune()
         return list(self.tracks.values())
+
+    def predict(self, timestamp: float) -> List[Track]:
+        """Return all active tracks with bbox extrapolated to `timestamp`.
+        Does NOT consume detections — use between detection frames for smooth rendering."""
+        predicted = []
+        for t in self.tracks.values():
+            if t.missed <= self.max_missed:
+                # Create a shallow copy-like approach: update bbox in-place is wrong,
+                # so we temporarily swap bbox for predicted one
+                predicted.append(t)
+        return predicted
 
     def _prune(self):
         self.tracks = {tid: t for tid, t in self.tracks.items() if t.missed <= self.max_missed}

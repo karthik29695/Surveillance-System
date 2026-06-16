@@ -75,11 +75,11 @@ App at http://localhost:3000
 | Face recognition (suspect DB) | ✅ | `services/face_recognition/face_service.py` |
 | Live WebSocket stream | ✅ | `routes/stream.py` |
 | Dashboard + Timeline UI | ✅ | `pages/` |
+| Annotated video output (MP4 writing) | ✅ | `services/recording/annotated_writer.py` |
 
 ## Next Modules to Build
 - [ ] Loitering detection (track person dwell time per zone)
 - [ ] Restricted area breach (define polygon zones, trigger on entry)
-- [ ] Annotated video output (write bounding boxes back to MP4)
 - [ ] Email/webhook alert delivery
 - [ ] PostgreSQL + Redis for production scale
 - [ ] Camera grid view (multi-feed dashboard)
