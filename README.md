@@ -17,8 +17,9 @@ Built with scalability and performance in mind, it features an **adaptive frame-
 ## ✨ Key Features
 
 - **Real-Time Object Detection**: Integrated YOLOv8 for high-accuracy, low-latency detection of people, vehicles, and custom objects.
-- **Facial Recognition**: Matches faces against a centralized suspect database to trigger immediate alerts.
 - **Smart Event Analysis**: Automatically logs events like person appearances, departures, crowding, and unauthorized objects.
+- **Loitering Detection**: Tracks dwell time per zone to flag suspicious behavior and generate event logs.
+- **Restricted Area Breach**: Polygon-based zone definitions that trigger immediate alerts upon unauthorized entry.
 - **Adaptive Recording**: Dynamically drops uninteresting frames to save storage space while maintaining high fidelity during critical events.
 - **Live Video Streaming**: Low-latency WebSocket streaming to the client dashboard.
 - **Interactive Dashboard**: Built with modern React and Recharts for visualizing event timelines, alert metrics, and zone statistics.
@@ -130,10 +131,9 @@ surveillance-system/
 ```
 
 ## 🔮 Future Roadmap
-- [ ] **Loitering Detection**: Track dwell time per zone to flag suspicious behavior.
-- [ ] **Restricted Area Breach**: Polygon-based zone definitions triggering on entry.
+- [ ] **Suspect Detection via Face Recognition**: Match faces against a centralized suspect database to trigger immediate alerts.
+- [ ] **Multi-Camera Live Streaming**: Support for centralized viewing of multiple simultaneous IP camera feeds.
 - [ ] **Automated Alerts**: Email and Webhook integrations for external notifications.
-- [ ] **Multi-Camera Grid**: Support for scaling to multiple simultaneous IP camera feeds.
 
 ---
 *Designed with an emphasis on code quality, modularity, and real-world applicability.*
